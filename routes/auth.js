@@ -50,6 +50,8 @@ router.post('/register', async (req, res) => {
       username: username,
       email: email,
       password: hashedPassword,
+      avatar:
+        'https://res.cloudinary.com/abc123sss/image/upload/v1649500899/PPN/non-avatar_m94zu8.jpg',
     });
 
     await newUser.save();

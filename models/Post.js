@@ -31,6 +31,19 @@ const schema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    comments: [
+      {
+        author: {
+          type: mongoose.Types.ObjectId,
+          default: null,
+          ref: 'User',
+        },
+        content: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
