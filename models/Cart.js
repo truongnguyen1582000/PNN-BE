@@ -1,38 +1,39 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const Cart = new mongoose.Schema(
   {
-    authorId: {
+    cartOwner: {
       type: mongoose.Types.ObjectId,
       default: null,
-      ref: "User",
+      ref: 'User',
     },
 
     cartItems: [
       {
-        prodcut_id: {
+        product: {
           type: Schema.Types.ObjectId,
-          ref: "product",
+          ref: 'product',
         },
         quantity: {
           type: Number,
           required: true,
           default: 0,
         },
-        title: {
-          type: String,
-          default: "",
-        },
-        price: {
-          type: Number,
-          default: 0,
-        },
       },
     ],
-    total: {
-      type: Number,
-      default: 0,
+
+    sharedTo: [
+      {
+        type: mongoose.Types.ObjectId,
+        default: null,
+        ref: 'User',
+      },
+    ],
+
+    token: {
+      type: String,
+      default: '',
     },
   },
   {
@@ -40,4 +41,4 @@ const Cart = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("cart", Cart);
+module.exports = mongoose.model('cart', Cart);

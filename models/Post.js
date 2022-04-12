@@ -33,7 +33,7 @@ const schema = new mongoose.Schema(
     ],
     comments: [
       {
-        author: {
+        commentBy: {
           type: mongoose.Types.ObjectId,
           default: null,
           ref: 'User',

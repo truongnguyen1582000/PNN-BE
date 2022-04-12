@@ -9,7 +9,13 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate(['author', 'likes', 'comments'])
+      .populate(['author', 'likes', 'commentBy'])
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'commentBy',
+        },
+      })
       .sort('-createdAt');
     res.status(200).json({
       data: posts,
@@ -164,7 +170,7 @@ router.post('/:postId/comment', verifyToken, async (req, res) => {
     await Post.findByIdAndUpdate(req.params.postId, {
       $push: {
         comments: {
-          author: req.payload.userId,
+          commentBy: req.payload.userId,
           content: req.body.content,
         },
       },
