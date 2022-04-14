@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
   try {
     const products = await Product.find({}).populate('shopOwner');
     return res.status(200).json({
-      products,
+      data: products,
     });
   } catch (error) {
     return res.status(500).json({
@@ -51,7 +51,34 @@ router.get('/myProducts', verifyToken, async (req, res) => {
 
 //Create Product
 router.post('/', verifyToken, async (req, res) => {
+  console.log(req.body);
   try {
+    if (req.body.name === '') {
+      return res.status(400).json({
+        message: 'Name is required',
+      });
+    }
+    if (req.body.description === '') {
+      return res.status(400).json({
+        message: 'Description is required',
+      });
+    }
+    if (req.body.price === '') {
+      return res.status(400).json({
+        message: 'Price is required',
+      });
+    }
+    if (req.body.quantity === '') {
+      return res.status(400).json({
+        message: 'Quantity is required',
+      });
+    }
+    if (req.body.image === '') {
+      return res.status(400).json({
+        message: 'Image is required',
+      });
+    }
+
     const product = await Product.create({
       ...req.body,
       shopOwner: req.payload.userId,
