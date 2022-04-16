@@ -5,9 +5,28 @@ const Product = require('../models/Products');
 const User = require('../models/User');
 
 //GET Products
-router.get('/', async (req, res) => {
+// get all product not belong to me
+router.get('/', verifyToken, async (req, res) => {
   try {
-    const products = await Product.find({}).populate('shopOwner');
+    const products = await Product.find({
+      shopOwner: { $ne: req.payload.userId },
+    }).populate('shopOwner');
+    return res.status(200).json({
+      data: products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// GET my products
+router.get('/myProducts', verifyToken, async (req, res) => {
+  try {
+    const products = await Product.find({
+      shopOwner: req.payload.userId,
+    }).populate('shopOwner');
     return res.status(200).json({
       data: products,
     });
@@ -25,22 +44,6 @@ router.get('/:id', async (req, res) => {
     }).populate('shopOwner');
     return res.status(200).json({
       product,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
-  }
-});
-
-// GET my products
-router.get('/myProducts', verifyToken, async (req, res) => {
-  try {
-    const products = await Product.find({
-      shopOwner: req.user._id,
-    }).populate('shopOwner');
-    return res.status(200).json({
-      products,
     });
   } catch (error) {
     return res.status(500).json({
