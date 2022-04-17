@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
+const { verifyToken } = require('../middleware/auth');
 
 router.post('/addToCart', async (req, res) => {
   const number = req.body.number || 1;
@@ -79,6 +80,71 @@ router.get('/', async (request, response) => {
     });
   } catch (error) {
     return response.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+router.get('/:id', async (request, response) => {
+  try {
+    const cart = await Cart.findOne({
+      _id: request.params.id,
+    })
+      .populate('cartOwner')
+      .populate('sharedTo')
+      .populate('cartItems.product', 'name price');
+    return response.status(200).json({
+      data: cart,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// create token to share cart
+router.get('/share', async (req, res) => {
+  try {
+    const cart = await Cart.findOne({
+      cartOwner: req.query.userId,
+    });
+    if (cart) {
+      cart.isShareable = true;
+      cart.token = Math.random().toString(36).substring(7);
+      await cart.save();
+      return res.status(200).json({
+        cart,
+      });
+    }
+    return res.status(400).json({
+      message: 'Cart not found',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+router.post('/setLimitMoney', verifyToken, async (req, res) => {
+  try {
+    const cart = await Cart.findOne({
+      _id: req.body.cartId,
+    });
+    if (cart) {
+      cart.limitMoney = req.body.limitMoney;
+      await cart.save();
+      return res.status(200).json({
+        message: 'Limit money set',
+      });
+    }
+    return res.status(400).json({
+      message: 'Cart not found',
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
       message: error.message,
     });
   }

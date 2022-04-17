@@ -11,6 +11,11 @@ const Cart = new mongoose.Schema(
 
     cartItems: [
       {
+        addedBy: {
+          type: mongoose.Types.ObjectId,
+          default: null,
+          ref: 'User',
+        },
         product: {
           type: Schema.Types.ObjectId,
           ref: 'product',
@@ -23,13 +28,15 @@ const Cart = new mongoose.Schema(
       },
     ],
 
-    sharedTo: [
-      {
-        type: mongoose.Types.ObjectId,
-        default: null,
-        ref: 'User',
-      },
-    ],
+    isShareable: {
+      type: Boolean,
+      default: false,
+    },
+
+    limitMoney: {
+      type: Number,
+      default: 0,
+    },
 
     token: {
       type: String,
