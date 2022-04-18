@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
 const { verifyToken } = require('../middleware/auth');
+var jwt = require('jsonwebtoken');
 
 router.post('/addToCart', verifyToken, async (req, res) => {
-  const number = req.body.number || 1;
+  const number = +req.body.number || 1;
+
   try {
     const cart = await Cart.findOne({
       cartOwner: req.payload.userId,
@@ -16,6 +18,9 @@ router.post('/addToCart', verifyToken, async (req, res) => {
       );
       if (product) {
         product.quantity += number;
+        if (product.quantity < 1) {
+          cart.cartItems.splice(cart.cartItems.indexOf(product), 1);
+        }
         await cart.save();
       } else {
         cart.cartItems.push({
@@ -66,6 +71,23 @@ router.post('/removeFromCart', verifyToken, async (req, res, next) => {
       message: 'Product removed from cart',
     });
   } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+router.get('/shareToken', verifyToken, async (req, res) => {
+  try {
+    const cart = await Cart.findOne({
+      cartOwner: req.payload.userId,
+    });
+    const token = jwt.sign({ cardId: cart._id }, process.env.SECRET_KEY);
+    res.status(200).json({
+      data: token,
+    });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -161,6 +183,31 @@ router.post('/setLimitMoney', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// api delete cart item
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const cart = await Cart.findOne({
+      cartOwner: req.payload.userId,
+    });
+    if (cart) {
+      const product = cart.cartItems.find(
+        (item) => item.product.toString() === req.params.id
+      );
+      if (product) {
+        cart.cartItems.splice(cart.cartItems.indexOf(product), 1);
+        await cart.save();
+      }
+    }
+    return res.status(200).json({
+      message: 'Product removed from cart',
+    });
+  } catch (error) {
     return res.status(500).json({
       message: error.message,
     });
