@@ -3,21 +3,23 @@ const router = express.Router();
 const Cart = require('../models/Cart');
 const { verifyToken } = require('../middleware/auth');
 
-router.post('/addToCart', async (req, res) => {
+router.post('/addToCart', verifyToken, async (req, res) => {
   const number = req.body.number || 1;
   try {
     const cart = await Cart.findOne({
-      cartOwner: req.body.userId,
+      cartOwner: req.payload.userId,
     });
+
     if (cart) {
       const product = cart.cartItems.find(
-        (item) => item.product.toString() === req.body.productId
+        (item) => item.product.toString() === req.body.productId.toString()
       );
       if (product) {
         product.quantity += number;
         await cart.save();
       } else {
         cart.cartItems.push({
+          addedBy: req.payload.userId,
           product: req.body.productId,
           quantity: number,
         });
@@ -25,9 +27,10 @@ router.post('/addToCart', async (req, res) => {
       }
     } else {
       const newCart = new Cart({
-        cartOwner: req.body.userId,
+        cartOwner: req.payload.userId,
         cartItems: [
           {
+            addedBy: req.payload.userId,
             product: req.body.productId,
             quantity: number,
           },
@@ -45,7 +48,7 @@ router.post('/addToCart', async (req, res) => {
   }
 });
 
-router.post('/removeFromCart', async (req, res, next) => {
+router.post('/removeFromCart', verifyToken, async (req, res, next) => {
   try {
     const cart = await Cart.findOne({
       cartOwner: req.body.userId,
@@ -69,14 +72,28 @@ router.post('/removeFromCart', async (req, res, next) => {
   }
 });
 
-router.get('/', async (request, response) => {
+router.get('/', verifyToken, async (request, response) => {
   try {
-    const carts = await Cart.find({})
-      .populate('cartOwner')
-      .populate('sharedTo')
-      .populate('cartItems.product', 'name price');
+    const carts = await Cart.findOne({
+      cartOwner: request.payload.userId,
+    })
+      .populate('cartItems.product')
+      .populate('cartItems.addedBy')
+      .populate('cartOwner');
+
+    if (!carts) {
+      const newCart = await new Cart({
+        cartOwner: request.payload.userId,
+        cartItems: [],
+      }).save();
+
+      return response.status(404).json({
+        data: newCart,
+      });
+    }
+
     return response.status(200).json({
-      carts,
+      data: carts,
     });
   } catch (error) {
     return response.status(500).json({

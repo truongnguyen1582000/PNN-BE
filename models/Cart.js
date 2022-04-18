@@ -37,11 +37,6 @@ const Cart = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
-    token: {
-      type: String,
-      default: '',
-    },
   },
   {
     timestamps: true,
