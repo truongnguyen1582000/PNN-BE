@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const app = express();
 const cors = require('cors');
 var router = express.Router();
 const morgan = require('morgan');
@@ -8,7 +9,6 @@ const morgan = require('morgan');
 const DB = require('./config/db');
 DB.connect();
 
-const app = express();
 app.use(
   cors({
     origin: '*',
@@ -32,6 +32,7 @@ const CommentCuuTroRoute = require('./routes/commentCuuTro');
 const productRoute = require('./routes/product');
 const cartRoute = require('./routes/cart');
 const postsHoiDap = require('./routes/postsHoiDap');
+const groupOrder = require('./routes/groupOrder');
 
 app.use('/api', router);
 router.use('/auth', authRoute);
@@ -46,6 +47,7 @@ router.use('/products', productRoute);
 router.use('/cart', cartRoute);
 router.use('/commentHoiDap', commentHoiDapRoute);
 router.use('/CommentCuuTro', CommentCuuTroRoute);
+router.use('/group-order', groupOrder);
 
 // HANDLE UNDEFINED ROUTE
 app.all('*', (req, res, next) => {
