@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const GroupOrder = require('../models/GroupOrder');
 const { verifyToken } = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
 // add item to group order
 router.post('/add/:id', verifyToken, async (req, res) => {
@@ -21,10 +22,10 @@ router.post('/add/:id', verifyToken, async (req, res) => {
       },
     };
 
-    // if already exist, update quantity
     const index = groupOrder.info.findIndex(
-      (info) => info.addedBy.toString() === req.payload.userId
+      (info) => info.addedBy.toString() === req.payload.userId.toString()
     );
+
     if (index !== -1) {
       const itemIndex = groupOrder.info[index].items.findIndex(
         (item) => item.product.toString() === req.body.productId
@@ -32,7 +33,7 @@ router.post('/add/:id', verifyToken, async (req, res) => {
       if (itemIndex !== -1) {
         groupOrder.info[index].items[itemIndex].quantity += 1;
       } else {
-        groupOrder.info[index].items.push(item);
+        groupOrder.info[index].items.push(item.items);
       }
     } else {
       groupOrder.info.push(item);
@@ -43,6 +44,7 @@ router.post('/add/:id', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -55,7 +57,12 @@ router.post('/', verifyToken, async (req, res) => {
     const groupOrder = await GroupOrder.create({
       cartOwner: req.payload.userId,
       name: req.body.name,
-      info: [],
+      info: [
+        {
+          addedBy: req.payload.userId,
+          items: [],
+        },
+      ],
     });
     return res.status(200).json({
       data: groupOrder,
@@ -81,6 +88,158 @@ router.get('/', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+router.get('/shareToken/:id', verifyToken, async (req, res) => {
+  try {
+    const groupOrder = await GroupOrder.findOne({
+      _id: req.params.id,
+    });
+
+    groupOrder.isShareable = true;
+    groupOrder.save();
+    const token = jwt.sign(
+      { groupOrderId: req.params.id },
+      process.env.SECRET_KEY
+    );
+    res.status(200).json({
+      data: token,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+router.post('/setLimitMoney', verifyToken, async (req, res) => {
+  try {
+    const groupOrder = await GroupOrder.findOne({
+      _id: req.body.cartId,
+    });
+    if (groupOrder) {
+      if (req.body.limitMoney === 0) {
+        groupOrder.limitMoney = null;
+      }
+
+      groupOrder.limitMoney = req.body.limitMoney;
+      await groupOrder.save();
+      return res.status(200).json({
+        message: 'Limit money set',
+      });
+    }
+    return res.status(400).json({
+      message: 'Group order not found',
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// delete group order
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const groupOrder = await GroupOrder.findById(req.params.id);
+    if (!groupOrder) {
+      return res.status(404).json({
+        message: 'Group order not found',
+      });
+    }
+    await groupOrder.remove();
+    return res.status(200).json({
+      message: 'Group order deleted',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// delete item from group order
+router.delete('/:id/:itemId', verifyToken, async (req, res) => {
+  try {
+    const groupOrder = await GroupOrder.findById(req.params.id);
+    if (!groupOrder) {
+      return res.status(404).json({
+        message: 'Group order not found',
+      });
+    }
+
+    const index = groupOrder.info.findIndex(
+      (info) => info.addedBy.toString() === req.payload.userId.toString()
+    );
+
+    if (index !== -1) {
+      const itemIndex = groupOrder.info[index].items.findIndex(
+        (item) => item.product.toString() === req.params.itemId
+      );
+      if (itemIndex !== -1) {
+        groupOrder.info[index].items.splice(itemIndex, 1);
+      }
+    }
+
+    await groupOrder.save();
+    return res.status(200).json({
+      data: groupOrder,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// api add more item to group order
+router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
+  const number = req.body.number || 1;
+  try {
+    const groupOrder = await GroupOrder.findById(req.params.id);
+
+    if (!groupOrder) {
+      return res.status(404).json({
+        message: 'Group order not found',
+      });
+    }
+
+    const index = groupOrder.info.findIndex(
+      (info) => info.addedBy.toString() === req.payload.userId.toString()
+    );
+
+    if (index !== -1) {
+      const itemIndex = groupOrder.info[index].items.findIndex(
+        (item) => item.product.toString() === req.params.itemId
+      );
+      if (itemIndex !== -1) {
+        // if quantity < 0 then delete item
+        if (groupOrder.info[index].items[itemIndex].quantity + number === 0) {
+          groupOrder.info[index].items.splice(itemIndex, 1);
+        } else {
+          groupOrder.info[index].items[itemIndex].quantity += number;
+        }
+      } else {
+        groupOrder.info[index].items.push({
+          product: req.params.itemId,
+          quantity: 1,
+        });
+      }
+    }
+
+    await groupOrder.save();
+    return res.status(200).json({
+      data: groupOrder,
+    });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({
       message: error.message,
     });

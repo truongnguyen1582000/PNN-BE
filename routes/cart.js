@@ -106,26 +106,6 @@ router.post('/removeFromCart', verifyToken, async (req, res, next) => {
   }
 });
 
-// router.get('/shareToken', verifyToken, async (req, res) => {
-//   try {
-//     const cart = await Cart.findOne({
-//       cartOwner: req.payload.userId,
-//     });
-
-//     cart.isShareable = true;
-//     cart.save();
-//     const token = jwt.sign({ cardId: cart._id }, process.env.SECRET_KEY);
-//     res.status(200).json({
-//       data: token,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// });
-
 // router.get('/getCartByToken/:token', verifyToken, async (req, res) => {
 //   try {
 //     const { token } = req.params;
@@ -216,33 +196,6 @@ router.get('/:id', async (request, response) => {
 //       message: 'Cart not found',
 //     });
 //   } catch (error) {
-//     return res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// });
-
-// router.post('/setLimitMoney', verifyToken, async (req, res) => {
-//   try {
-//     const cart = await Cart.findOne({
-//       _id: req.body.cartId,
-//     });
-//     if (cart) {
-//       if (req.body.limitMoney === 0) {
-//         cart.limitMoney = null;
-//       }
-
-//       cart.limitMoney = req.body.limitMoney;
-//       await cart.save();
-//       return res.status(200).json({
-//         message: 'Limit money set',
-//       });
-//     }
-//     return res.status(400).json({
-//       message: 'Cart not found',
-//     });
-//   } catch (error) {
-//     console.log(error);
 //     return res.status(500).json({
 //       message: error.message,
 //     });
