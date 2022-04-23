@@ -106,32 +106,6 @@ router.post('/removeFromCart', verifyToken, async (req, res, next) => {
   }
 });
 
-// router.get('/getCartByToken/:token', verifyToken, async (req, res) => {
-//   try {
-//     const { token } = req.params;
-//     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-//     const cart = await Cart.findOne({
-//       _id: decoded.cardId,
-//     })
-//       .populate('cartItems.product')
-//       .populate('cartItems.addedBy')
-//       .populate('cartOwner');
-//     if (cart) {
-//       return res.status(200).json({
-//         data: cart,
-//       });
-//     }
-//     return res.status(404).json({
-//       message: 'Cart not found',
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// });
-
 router.get('/', verifyToken, async (request, response) => {
   try {
     const carts = await Cart.findOne({

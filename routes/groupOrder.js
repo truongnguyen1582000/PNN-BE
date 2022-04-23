@@ -4,6 +4,32 @@ const GroupOrder = require('../models/GroupOrder');
 const { verifyToken } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 
+// api leave group order
+router.delete('/leave/:id', verifyToken, async (req, res) => {
+  try {
+    const groupOrder = await GroupOrder.findById(req.params.id);
+    if (!groupOrder) {
+      return res.status(404).json({
+        message: 'Group order not found',
+      });
+    }
+
+    const index = groupOrder.shareTo.findIndex((e) => e === req.payload.userId);
+
+    groupOrder.shareTo.splice(index, 1);
+
+    await groupOrder.save();
+    return res.status(200).json({
+      data: groupOrder,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
 // add item to group order
 router.post('/add/:id', verifyToken, async (req, res) => {
   try {
@@ -78,14 +104,20 @@ router.post('/', verifyToken, async (req, res) => {
 //get group order
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const groupOrder = await GroupOrder.find({
-      cartOwner: req.payload.userId,
-    })
+    const groupOrder = await GroupOrder.find()
       .populate('cartOwner')
       .populate('info.addedBy')
       .populate('info.items.product');
+
+    const result = groupOrder.filter(
+      (groupOrder) =>
+        groupOrder.cartOwner._id.toString() === req.payload.userId.toString() ||
+        groupOrder.shareTo.some(
+          (user) => user.toString() === req.payload.userId.toString()
+        )
+    );
     return res.status(200).json({
-      data: groupOrder,
+      data: result,
     });
   } catch (error) {
     return res.status(500).json({
@@ -237,6 +269,43 @@ router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
     await groupOrder.save();
     return res.status(200).json({
       data: groupOrder,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+router.get('/getGroupOrder/:token', verifyToken, async (req, res) => {
+  try {
+    const { token } = req.params;
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const groupOrder = await GroupOrder.findOne({
+      _id: decoded.groupOrderId,
+    });
+
+    // if share to already have this user
+    if (
+      groupOrder.shareTo.some((user) => user.toString() === req.payload.userId)
+    ) {
+      return res.status(203).json({
+        message: "You've already join this group order",
+      });
+    }
+
+    groupOrder.shareTo.push(req.payload.userId);
+
+    groupOrder.save();
+
+    if (groupOrder) {
+      return res.status(200).json({
+        data: groupOrder,
+      });
+    }
+    return res.status(404).json({
+      message: 'Cart not found',
     });
   } catch (error) {
     console.log(error);

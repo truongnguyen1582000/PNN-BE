@@ -14,6 +14,14 @@ const GroupOrder = new mongoose.Schema(
       default: null,
     },
 
+    shareTo: [
+      {
+        type: mongoose.Types.ObjectId,
+        default: [],
+        ref: 'User',
+      },
+    ],
+
     info: [
       {
         addedBy: {
