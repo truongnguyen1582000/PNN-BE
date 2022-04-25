@@ -56,6 +56,13 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       enum: [1, 2, 3],
     },
+    bookmarks: [
+      {
+        type: mongoose.Types.ObjectId,
+        default: [],
+        ref: 'Post',
+      },
+    ],
   },
   { timestamps: true }
 );

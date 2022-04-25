@@ -1,9 +1,30 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 const Post = require('../models/Post');
-const User = require('../models/User');
 
 const router = express.Router();
+
+// api get my post
+router.get('/my-post', verifyToken, async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.payload.userId })
+      .populate(['author', 'likes', 'commentBy'])
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'commentBy',
+        },
+      })
+      .sort('-createdAt');
+    res.status(200).json({
+      data: posts,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
 
 // get all post
 router.get('/', async (req, res) => {
@@ -43,107 +64,6 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// {router.put('/', async (req, res) => {
-//     try {
-//         const updatePost = req.body;
-//         const post = await PostModel.findOneAndUpdate({ _id: updatePost._id }, updatePost, { new: true });
-//         await post.save();
-//         res.status(200).json({ error: error });
-//     } catch (error) {
-//         res.status(500).json({ error: error });
-//     }
-// });}
-
-// update a post
-
-// router.put('/:id', async (req, res) => {
-//   try {
-//     const post = await Post.findById(req.params.id);
-//     if (post.authorId === req.body.userId) {
-//       await post.updateOne({ $set: req.body });
-//       res.status(200).json('the post has been updated');
-//     } else {
-//       res.status(403).json('you can update only your post');
-//     }
-//   } catch (err) {
-//     res.status(500).json(err);
-//   }
-// });
-
-// {router.delete('/', async (req, res) => {
-//     try {
-//         const delPost = req.params;
-//         const post = await PostModel.findOneAndDelete({ _id: delPost._id }, delPost, { new: true });
-//         await post.delete();
-//         res.status(200).json({ error: error });
-//     } catch (error) {
-//         res.status(500).json({ error: error });
-//     }
-// });}
-// router.delete('/:id', async (req, res) => {
-//   try {
-//     const post = await Post.findById(req.params.id);
-//     if (post.authorId === req.body.userId) {
-//       await post.deleteOne();
-//       res.status(200).json('the post has been deleted');
-//     } else {
-//       res.status(403).json('you can delete only your post');
-//     }
-//   } catch (err) {
-//     res.status(500).json(err);
-//   }
-// });
-
-// router.delete('deleted/:id', async (req, res) => {
-//   try {
-//     const postDeletedCondition = { _id: req.params.id };
-//     const deletedPost = await Post.findOneAndDelete(postDeletedCondition);
-
-//     if (!deletedPost) {
-//       return res.json({
-//         success: false,
-//         message: 'Deleted Fail',
-//       });
-//     } else {
-//       return res.json({
-//         success: true,
-//         message: 'Completed',
-//         post: postDelete,
-//       });
-//     }
-//   } catch (error) {
-//     return res.json({
-//       success: false,
-//       message: 'Internal server error',
-//     });
-//   }
-// });
-// router.get('/timeline/:userId', async (req, res) => {
-//   try {
-//     const currentUser = await User.findById(req.params.userId);
-//     const userPosts = await Post.find({ userId: currentUser._id });
-//     const friendPosts = await Promise.all(
-//       currentUser.followings.map((friendId) => {
-//         return Post.find({ userId: friendId });
-//       })
-//     );
-//     res.status(200).json(userPosts.concat(...friendPosts));
-//   } catch (err) {
-//     res.status(500).json(err);
-//   }
-// });
-
-//get user's all posts
-
-// router.get('/profile/:username', async (req, res) => {
-//   try {
-//     const user = await User.findOne({ username: req.params.username });
-//     const posts = await Post.find({ userId: user._id });
-//     res.status(200).json(posts);
-//   } catch (err) {
-//     res.status(500).json(err);
-//   }
-// });
 //like / dislike a post
 router.put('/like/:id', verifyToken, async (req, res) => {
   try {
@@ -177,6 +97,46 @@ router.post('/:postId/comment', verifyToken, async (req, res) => {
     });
 
     res.status(200).json({});
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+// add user to bookmarks
+router.put('/bookmark/:postId', verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+
+    if (
+      !post.bookmark.some((e) => e.toString() === req.payload.userId.toString())
+    ) {
+      console.log('run1');
+
+      await post.updateOne({ $push: { bookmark: req.payload.userId } });
+    } else {
+      console.log('run2');
+
+      await post.updateOne({ $pull: { bookmark: req.payload.userId } });
+    }
+
+    res.status(200).json();
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+// api delete post
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    await post.deleteOne();
+    res.status(200).json({
+      message: 'post deleted',
+    });
   } catch (err) {
     res.status(500).json({
       message: err.message,

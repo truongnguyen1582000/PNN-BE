@@ -23,16 +23,10 @@ const schema = new mongoose.Schema(
       type: String,
     },
     // attachment: String,
-    likes: [
-      {
-        type: mongoose.Types.ObjectId,
-        default: null,
-        ref: 'User',
-      },
-    ],
-    type: {
-      type: String,
-      default: 'nornal',
+
+    status: {
+      type: Boolean,
+      default: true,
     },
 
     comments: [
@@ -48,16 +42,8 @@ const schema = new mongoose.Schema(
         },
       },
     ],
-
-    bookmark: [
-      {
-        type: mongoose.Types.ObjectId,
-        default: [],
-        ref: 'User',
-      },
-    ],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('post', schema);
+module.exports = mongoose.model('rescue', schema);
