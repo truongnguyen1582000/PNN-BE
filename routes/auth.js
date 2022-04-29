@@ -2,6 +2,7 @@ const router = require('express').Router();
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { verifyToken } = require('../middleware/auth.js');
 
 router.post('/register', async (req, res) => {
   try {
@@ -105,6 +106,34 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.log(err.message);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// update avatar
+router.put('/updateAvatar', verifyToken, async (req, res) => {
+  console.log(req.body.avatar);
+  try {
+    const user = await User.findById(req.payload.userId);
+    if (!user) {
+      return res.status(400).json({
+        message: 'User not found',
+      });
+    }
+
+    const avatar = req.body.avatar;
+
+    user.avatar = avatar;
+
+    await user.save();
+
+    res.status(200).json({
+      message: 'Update avatar successfully',
+    });
+  } catch (error) {
+    console.log(error.message);
     res.status(500).json({
       message: error.message,
     });

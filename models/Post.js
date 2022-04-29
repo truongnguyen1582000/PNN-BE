@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
-const { Schema, model } = mongoose;
 const schema = new mongoose.Schema(
   {
-    // title: {
-    //   type: String,
-    //   required: false,
-    // },
     content: {
       type: String,
       required: true,
@@ -15,14 +10,10 @@ const schema = new mongoose.Schema(
       default: null,
       ref: 'User',
     },
-    // desc: {
-    //   type: String,
-    //   max: 500,
-    // },
+
     imgUrl: {
       type: String,
     },
-    // attachment: String,
     likes: [
       {
         type: mongoose.Types.ObjectId,
@@ -32,7 +23,13 @@ const schema = new mongoose.Schema(
     ],
     type: {
       type: String,
-      default: 'nornal',
+      enum: ['Rescue', 'Post'],
+      default: 'Post',
+    },
+
+    isOpen: {
+      type: Boolean,
+      default: true,
     },
 
     comments: [

@@ -7,7 +7,10 @@ const router = express.Router();
 // api get my post
 router.get('/my-post', verifyToken, async (req, res) => {
   try {
-    const posts = await Post.find({ author: req.payload.userId })
+    const posts = await Post.find({
+      author: req.payload.userId,
+      type: 'Post',
+    })
       .populate(['author', 'likes', 'commentBy'])
       .populate({
         path: 'comments',
@@ -27,9 +30,11 @@ router.get('/my-post', verifyToken, async (req, res) => {
 });
 
 // get all post
-router.get('/', async (req, res) => {
+router.get('/:type', async (req, res) => {
+  console.log(req.params.type);
+
   try {
-    const posts = await Post.find()
+    const posts = await Post.find({ type: req.params.type })
       .populate(['author', 'likes', 'commentBy'])
       .populate({
         path: 'comments',
@@ -49,17 +54,19 @@ router.get('/', async (req, res) => {
 
 // create post
 router.post('/', verifyToken, async (req, res) => {
+  console.log(req.body.type);
   try {
-    console.log(req.payload);
     const newPost = req.body;
     const post = new Post({
       ...newPost,
       author: req.payload.userId,
       likeCount: [],
+      type: req.body.type,
     });
     await post.save();
     res.status(200).json({ data: post });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error });
   }
 });
@@ -85,7 +92,6 @@ router.put('/like/:id', verifyToken, async (req, res) => {
 });
 
 router.post('/:postId/comment', verifyToken, async (req, res) => {
-  console.log(req.params.postId);
   try {
     await Post.findByIdAndUpdate(req.params.postId, {
       $push: {
@@ -112,12 +118,8 @@ router.put('/bookmark/:postId', verifyToken, async (req, res) => {
     if (
       !post.bookmark.some((e) => e.toString() === req.payload.userId.toString())
     ) {
-      console.log('run1');
-
       await post.updateOne({ $push: { bookmark: req.payload.userId } });
     } else {
-      console.log('run2');
-
       await post.updateOne({ $pull: { bookmark: req.payload.userId } });
     }
 
@@ -136,6 +138,22 @@ router.delete('/:id', verifyToken, async (req, res) => {
     await post.deleteOne();
     res.status(200).json({
       message: 'post deleted',
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+// api change status for post
+router.put('/status/:id', verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    post.isOpen = !post.isOpen;
+    await post.save();
+    res.status(200).json({
+      message: 'post status changed',
     });
   } catch (err) {
     res.status(500).json({

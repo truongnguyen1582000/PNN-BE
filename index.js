@@ -32,7 +32,7 @@ const productRoute = require('./routes/product');
 const cartRoute = require('./routes/cart');
 const postsHoiDap = require('./routes/postsHoiDap');
 const groupOrder = require('./routes/groupOrder');
-const rescueRoute = require('./routes/rescue');
+const addressRoute = require('./routes/address');
 
 app.use('/api', router);
 router.use('/auth', authRoute);
@@ -46,8 +46,8 @@ router.use('/support', supportRoute);
 router.use('/products', productRoute);
 router.use('/cart', cartRoute);
 router.use('/commentHoiDap', commentHoiDapRoute);
-router.use('/rescue', rescueRoute);
 router.use('/group-order', groupOrder);
+router.use('/address', addressRoute);
 
 // HANDLE UNDEFINED ROUTE
 app.all('*', (req, res, next) => {
