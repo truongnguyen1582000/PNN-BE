@@ -34,6 +34,16 @@ router.delete('/leave/:id', verifyToken, async (req, res) => {
 router.post('/add/:id', verifyToken, async (req, res) => {
   try {
     const groupOrder = await GroupOrder.findById(req.params.id);
+    // if isShareable is false, only cart owner can add item to group order
+    if (
+      !groupOrder.isShareable &&
+      req.payload.userId !== groupOrder.cartOwner.toString()
+    ) {
+      return res.status(400).json({
+        message: 'You are not allowed to add item to this group order',
+      });
+    }
+
     if (!groupOrder) {
       return res.status(404).json({
         message: 'Group order not found',
@@ -133,7 +143,6 @@ router.get('/shareToken/:id', verifyToken, async (req, res) => {
       _id: req.params.id,
     });
 
-    groupOrder.isShareable = true;
     groupOrder.save();
     const token = jwt.sign(
       { groupOrderId: req.params.id },
@@ -307,6 +316,28 @@ router.get('/getGroupOrder/:token', verifyToken, async (req, res) => {
     }
     return res.status(404).json({
       message: 'Cart not found',
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+// change status of isShareable
+router.put('/changeShareStatus/:id', verifyToken, async (req, res) => {
+  try {
+    const groupOrder = await GroupOrder.findById(req.params.id);
+    if (!groupOrder) {
+      return res.status(404).json({
+        message: 'Group order not found',
+      });
+    }
+    groupOrder.isShareable = !groupOrder.isShareable;
+    await groupOrder.save();
+    return res.status(200).json({
+      message: 'Status changed',
     });
   } catch (error) {
     console.log(error);
