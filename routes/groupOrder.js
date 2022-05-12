@@ -253,45 +253,6 @@ router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
       });
     }
 
-    //  if total money of this user is greater than limit money of group order
-    if (groupOrder.limitMoney) {
-      const totalMoney = await GroupOrder.aggregate([
-        {
-          $match: {
-            _id: groupOrder._id,
-          },
-        },
-        {
-          $project: {
-            totalMoney: {
-              $sum: {
-                $map: {
-                  input: '$info',
-                  as: 'info',
-                  in: {
-                    $multiply: [
-                      '$info.items.quantity',
-                      '$info.items.product.price',
-                    ],
-                  },
-                },
-              },
-            },
-          },
-        },
-        {
-          $project: {
-            totalMoney: '$totalMoney',
-          },
-        },
-      ]);
-      if (totalMoney[0].totalMoney > groupOrder.limitMoney) {
-        return res.status(400).json({
-          message: 'You have exceeded the limit money',
-        });
-      }
-    }
-
     const index = groupOrder.info.findIndex(
       (info) => info.addedBy.toString() === req.payload.userId.toString()
     );
