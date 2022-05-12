@@ -2,7 +2,8 @@ const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 const Product = require('../models/Products');
-const User = require('../models/User');
+const Cart = require('../models/Cart');
+const GoCart = require('../models/GroupOrder');
 
 //GET Products
 // get all product not belong to me
@@ -121,6 +122,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
+
     return res.status(200).json({
       product,
     });
