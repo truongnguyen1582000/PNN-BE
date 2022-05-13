@@ -23,7 +23,6 @@ router.delete('/leave/:id', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -80,7 +79,6 @@ router.post('/add/:id', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -104,7 +102,6 @@ router.post('/', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -130,7 +127,6 @@ router.get('/', verifyToken, async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -152,7 +148,6 @@ router.get('/shareToken/:id', verifyToken, async (req, res) => {
       data: token,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -179,7 +174,6 @@ router.post('/setLimitMoney', verifyToken, async (req, res) => {
       message: 'Group order not found',
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -234,7 +228,6 @@ router.delete('/:id/:itemId', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -281,7 +274,6 @@ router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
       data: groupOrder,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -324,7 +316,6 @@ router.get('/getGroupOrder/:token', verifyToken, async (req, res) => {
       message: 'Cart not found',
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });
@@ -346,7 +337,6 @@ router.put('/changeShareStatus/:id', verifyToken, async (req, res) => {
       message: 'Status changed',
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       message: error.message,
     });

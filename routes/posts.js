@@ -31,8 +31,6 @@ router.get('/my-post', verifyToken, async (req, res) => {
 
 // get all post
 router.get('/:type', async (req, res) => {
-  console.log(req.params.type);
-
   try {
     const posts = await Post.find({ type: req.params.type })
       .populate(['author', 'likes', 'commentBy'])
@@ -47,14 +45,12 @@ router.get('/:type', async (req, res) => {
       data: posts,
     });
   } catch (error) {
-    console.log('error: ', error);
     res.status(500).json({ error: error });
   }
 });
 
 // create post
 router.post('/', verifyToken, async (req, res) => {
-  console.log(req.body.type);
   try {
     const newPost = req.body;
     const post = new Post({
@@ -66,7 +62,6 @@ router.post('/', verifyToken, async (req, res) => {
     await post.save();
     res.status(200).json({ data: post });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error });
   }
 });

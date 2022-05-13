@@ -60,7 +60,6 @@ router.post('/register', async (req, res) => {
       message: 'Create account successfully',
     });
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({
       message: error.message,
     });
@@ -105,7 +104,6 @@ router.post('/login', async (req, res) => {
       token,
     });
   } catch (err) {
-    console.log(err.message);
     res.status(500).json({
       message: error.message,
     });
@@ -114,7 +112,6 @@ router.post('/login', async (req, res) => {
 
 // update avatar
 router.put('/updateAvatar', verifyToken, async (req, res) => {
-  console.log(req.body.avatar);
   try {
     const user = await User.findById(req.payload.userId);
     if (!user) {
@@ -133,7 +130,6 @@ router.put('/updateAvatar', verifyToken, async (req, res) => {
       message: 'Update avatar successfully',
     });
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({
       message: error.message,
     });

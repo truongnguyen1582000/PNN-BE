@@ -58,7 +58,6 @@ router.get('/getAll', verifyToken, async (req, res) => {
       data: address,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: error.message,
     });
