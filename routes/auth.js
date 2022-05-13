@@ -140,4 +140,27 @@ router.put('/updateAvatar', verifyToken, async (req, res) => {
   }
 });
 
+// update username
+router.put('/updateUsername', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.payload.userId);
+    if (!user) {
+      return res.status(400).json({
+        message: 'User not found',
+      });
+    }
+    const username = req.body.username;
+    user.username = username;
+    await user.save();
+
+    res.status(200).json({
+      message: 'Update username successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;

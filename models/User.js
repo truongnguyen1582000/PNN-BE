@@ -28,6 +28,11 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    quote: {
+      type: String,
+      default:
+        'Dogs and angels are not very far apart. - Charles Bukowski, German American Writer',
+    },
   },
   { timestamps: true }
 );
