@@ -12,7 +12,7 @@ const Product = new mongoose.Schema(
       require: true,
       minlength: 6,
     },
-    desciption: {
+    description: {
       type: String,
       require: true,
     },

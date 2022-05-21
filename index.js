@@ -32,6 +32,7 @@ const productRoute = require('./routes/product');
 const cartRoute = require('./routes/cart');
 const groupOrder = require('./routes/groupOrder');
 const addressRoute = require('./routes/address');
+const orderRoute = require('./routes/order');
 
 app.use('/api', router);
 router.use('/auth', authRoute);
@@ -41,6 +42,7 @@ router.use('/products', productRoute);
 router.use('/cart', cartRoute);
 router.use('/group-order', groupOrder);
 router.use('/address', addressRoute);
+router.use('/order', orderRoute);
 
 // HANDLE UNDEFINED ROUTE
 app.all('*', (req, res, next) => {
