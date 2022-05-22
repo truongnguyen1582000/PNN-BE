@@ -29,6 +29,31 @@ router.get('/my-post', verifyToken, async (req, res) => {
   }
 });
 
+// get post of user with id
+router.get('/user/:id', verifyToken, async (req, res) => {
+  try {
+    const posts = await Post.find({
+      author: req.params.id,
+      type: 'Post',
+    })
+      .populate(['author', 'likes', 'commentBy'])
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'commentBy',
+        },
+      })
+      .sort('-createdAt');
+    res.status(200).json({
+      data: posts,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
 // get all post
 router.get('/:type', async (req, res) => {
   try {

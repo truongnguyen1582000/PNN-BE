@@ -159,4 +159,53 @@ router.put('/updateUsername', verifyToken, async (req, res) => {
   }
 });
 
+// change password
+router.put('/changePassword', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.payload.userId);
+    if (!user) {
+      return res.status(400).json({
+        message: 'User not found',
+      });
+    }
+
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if (oldPassword === '' || newPassword === '' || confirmPassword === '') {
+      return res.status(401).json({
+        message:
+          'Please enter your old password, new password and confirm password',
+      });
+    }
+
+    const validPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!validPassword) {
+      return res.status(401).json({
+        message: 'Your old password is invalid',
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(401).json({
+        message: "Password doesn't match",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+
+    await user.save();
+
+    res.status(200).json({
+      message: 'Change password successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;

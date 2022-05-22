@@ -18,6 +18,12 @@ router.delete('/leave/:id', verifyToken, async (req, res) => {
 
     groupOrder.shareTo.splice(index, 1);
 
+    // delete my cart info in group order
+    const idx = groupOrder.info.findIndex(
+      (e) => e.addedBy === req.payload.userId
+    );
+    groupOrder.info.splice(idx, 1);
+
     await groupOrder.save();
     return res.status(200).json({
       data: groupOrder,
@@ -33,7 +39,7 @@ router.delete('/leave/:id', verifyToken, async (req, res) => {
 router.post('/add/:id', verifyToken, async (req, res) => {
   try {
     const groupOrder = await GroupOrder.findById(req.params.id);
-    // if isShareable is false, only cart owner can add item to group order
+    // if isShareab is false, only cart owner can add item to group order
     if (
       !groupOrder.isShareable &&
       req.payload.userId !== groupOrder.cartOwner.toString()

@@ -38,4 +38,25 @@ router.get('/bookmarks', verifyToken, async (req, res) => {
   }
 });
 
+// get user info by id
+router.get('/:id', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(400).json({
+        message: 'User not found',
+      });
+    }
+
+    res.status(200).json({
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
