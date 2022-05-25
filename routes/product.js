@@ -11,7 +11,9 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const products = await Product.find({
       shopOwner: { $ne: req.payload.userId },
-    }).populate('shopOwner');
+    })
+      .populate('shopOwner')
+      .sort({ createdAt: -1 });
     return res.status(200).json({
       data: products,
     });
@@ -27,7 +29,9 @@ router.get('/myProducts', verifyToken, async (req, res) => {
   try {
     const products = await Product.find({
       shopOwner: req.payload.userId,
-    }).populate('shopOwner');
+    })
+      .populate('shopOwner')
+      .sort({ createdAt: -1 });
     return res.status(200).json({
       data: products,
     });

@@ -47,7 +47,7 @@ const GroupOrder = new mongoose.Schema(
 
     isShareable: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     limitMoney: {
