@@ -290,7 +290,7 @@ router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
       number !== -1 &&
       groupOrder.cartOwner.toString() !== req.payload.userId
     ) {
-      const product = await Product.findById(req.body.productId);
+      const product = await Product.findById(req.params.itemId);
 
       const totalPrice =
         groupOrder.info[index].items.reduce(
