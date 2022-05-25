@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const GroupOrder = require('../models/GroupOrder');
+const Product = require('../models/Products');
 const { verifyToken } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 
@@ -38,7 +39,10 @@ router.delete('/leave/:id', verifyToken, async (req, res) => {
 // add item to group order
 router.post('/add/:id', verifyToken, async (req, res) => {
   try {
-    const groupOrder = await GroupOrder.findById(req.params.id);
+    const groupOrder = await GroupOrder.findById(req.params.id).populate(
+      'info.items.product'
+    );
+
     // if isShareab is false, only cart owner can add item to group order
     if (
       !groupOrder.isShareable &&
@@ -67,9 +71,32 @@ router.post('/add/:id', verifyToken, async (req, res) => {
       (info) => info.addedBy.toString() === req.payload.userId.toString()
     );
 
+    if (
+      groupOrder.limitMoney !== 0 &&
+      groupOrder.cartOwner.toString() !== req.payload.userId
+    ) {
+      const product = await Product.findById(req.body.productId);
+      if (product.price > groupOrder.limitMoney) {
+        return res.status(400).json({
+          message: 'You have reached the limit money',
+        });
+      }
+
+      const totalPrice =
+        groupOrder.info[index]?.items.reduce(
+          (total, item) => total + item.quantity * item.product.price,
+          0
+        ) + product.price;
+      if (totalPrice > groupOrder.limitMoney) {
+        return res.status(400).json({
+          message: 'You have reached the limit money',
+        });
+      }
+    }
+
     if (index !== -1) {
       const itemIndex = groupOrder.info[index].items.findIndex(
-        (item) => item.product.toString() === req.body.productId
+        (item) => item.product._id.toString() === req.body.productId
       );
       if (itemIndex !== -1) {
         groupOrder.info[index].items[itemIndex].quantity += 1;
@@ -244,7 +271,9 @@ router.delete('/:id/:itemId', verifyToken, async (req, res) => {
 router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
   const number = req.body.number || 1;
   try {
-    const groupOrder = await GroupOrder.findById(req.params.id);
+    const groupOrder = await GroupOrder.findById(req.params.id).populate(
+      'info.items.product'
+    );
 
     if (!groupOrder) {
       return res.status(404).json({
@@ -256,10 +285,31 @@ router.post('/addMoreItem/:id/:itemId', verifyToken, async (req, res) => {
       (info) => info.addedBy.toString() === req.payload.userId.toString()
     );
 
+    if (
+      groupOrder.limitMoney !== 0 &&
+      number !== -1 &&
+      groupOrder.cartOwner.toString() !== req.payload.userId
+    ) {
+      const product = await Product.findById(req.body.productId);
+
+      const totalPrice =
+        groupOrder.info[index].items.reduce(
+          (total, item) => total + item.quantity * item.product.price,
+          0
+        ) + product.price;
+
+      if (totalPrice > groupOrder.limitMoney) {
+        return res.status(400).json({
+          message: 'You have reached the limit money',
+        });
+      }
+    }
+
     if (index !== -1) {
       const itemIndex = groupOrder.info[index].items.findIndex(
-        (item) => item.product.toString() === req.params.itemId
+        (item) => item.product._id.toString() === req.params.itemId
       );
+
       if (itemIndex !== -1) {
         // if quantity < 0 then delete item
         if (groupOrder.info[index].items[itemIndex].quantity + number === 0) {

@@ -1,7 +1,17 @@
 const express = require('express');
 const { verifyToken } = require('../middleware/auth');
 const Order = require('../models/Order');
+const User = require('../models/User');
 const GroupOrder = require('../models/GroupOrder');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'trung77vippro@gmail.com',
+    pass: 'fpzyhelvvdbkqvzz',
+  },
+});
 
 const router = express.Router();
 
@@ -15,6 +25,19 @@ router.post('/', verifyToken, async (req, res) => {
       orderInfo: req.body.orderInfo,
       message: req.body.message,
     });
+
+    const shopInfo = await User.findById(req.body.to);
+    const userOrderInfo = await User.findById(req.payload.userId);
+
+    const mailOptions = {
+      from: 'Admin',
+      to: shopInfo.email,
+      subject: 'PPN - New Order',
+      html: `<p> You have a new order from user ${userOrderInfo.username}, Let check it in: <a href="http://localhost:3000/home-page/shop">Here<a></p>
+          <p>Thanks</p>`,
+    };
+
+    transporter.sendMail(mailOptions);
 
     // delete group order
     await GroupOrder.findOneAndDelete({
